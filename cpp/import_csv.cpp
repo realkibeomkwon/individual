@@ -54,8 +54,10 @@ int main(int argc, char *argv[]) {
     while(file.good()) {
         row = csv_read_row(file, ',');
 
+        // i is the number of rows
         for (int i = 0; i < 13; i++) {
             int start = 0;
+            // 데이터 안에 '가 있으면 ''로 바꿈
             while (true) {
                 pos = row[i].find("'", start);
                 if (pos == string::npos) {
@@ -121,25 +123,39 @@ vector<string> csv_read_row(istream &file, char delimiter) {
     vector<string> row;//relying on RVO(Return Value Optimization)
 
     while(file.good()) {
+        // 1 character씩 불러옴
         char c = file.get();
+        // inquotes = false이고 c = '"'일 때 -> 데이터의 첫 시작
         if (!inquotes && c=='"') {
             // inquotes를 true로 바꿈
             inquotes=true;
         }
+        // inquotes = ture이고 c = '"'일 때
         else if (inquotes && c=='"') {
+            // 그 다음 문자도 '"'이면 현재 불러온 character가 데이터의 마지막이 아니므로
             if ( file.peek() == '"') {
+                // ss에 추가
                 ss << (char)file.get();
             }
+            // 그 다음 문자가 '"'이면 현재 불러온 character가 데이터의 마지막이므로
             else {
+                // inquotes를 false로 바꿈
                 inquotes=false;
             }
         }
+        // inquotes = false이고 현재 불러온 character가 delimiter일 때 
         else if (!inquotes && c==delimiter) {
+            // 현재까지 ss에 추가한 문자열을 row에 담음
             row.push_back(ss.str());
+            //ss에 공백 추가
             ss.str("");
         }
+        // \r : 현재 활성 위치를 현재 라인의 시작 위치로 옮김
+        // \n : 현재 활성 위치를 다음 줄의 시작 위치로 옮김(키보드의 enter 기능과 동일)
+        // 현재 줄의 마지막 데이터일 때
         else if (!inquotes && (c=='\r' || c=='\n') ) {
             if(file.peek()=='\n') {
+                // 1 character 불러옴
                 file.get();
             }
             row.push_back(ss.str());
